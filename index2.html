@@ -1,0 +1,42 @@
+Quagga.init({
+    inputStream: {
+        name: "Live",
+        type: "LiveStream",
+        target: document.querySelector('#interactive'),
+        constraints: {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        }
+    },
+    decoder: {
+        readers: ["ean_reader"], // Adjust readers based on your use case
+        multiple: false
+    },
+    locate: true,
+    locator: {
+        patchSize: "medium",
+        halfSample: true
+    },
+    debug: true
+}, function (err) {
+    if (err) {
+        console.error(err);
+        document.getElementById("result").textContent = "Error initializing scanner: " + err.message;
+        return;
+    }
+    console.log("Quagga initialized.");
+    Quagga.start();
+});
+
+Quagga.onDetected(function (result) {
+    if (result && result.codeResult) {
+        const code = result.codeResult.code;
+        if (code.length >= 8 && /^[0-9A-Z]+$/.test(code)) {
+            document.getElementById("result").textContent = `Barcode: ${code}`;
+            Quagga.stop(); // Stop after successful scan
+        } else {
+            console.warn("Invalid Barcode:", code);
+        }
+    }
+});
